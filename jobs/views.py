@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import Job
 from .serializers import JobSerializer
-
+from .tasks import process_job
 
 class JobCreateAPIView(APIView):
 
@@ -16,10 +16,13 @@ class JobCreateAPIView(APIView):
         serializer = JobSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         job = serializer.save()
+        process_job.delay(job.id)
         return Response(
-            JobSerializer(job).data,
-            status=status.HTTP_201_CREATED
+         JobSerializer(job).data,
+         status=status.HTTP_201_CREATED
         )
+
+
 
 
 class JobDetailAPIView(APIView):
